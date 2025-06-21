@@ -1,5 +1,4 @@
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "midi_in.hpp"
 
 extern "C" void app_main()
 {
