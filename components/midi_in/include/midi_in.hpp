@@ -2,12 +2,13 @@
 
 #include "driver/uart.h"
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <functional>
 
 // MIDI UART and task parameters (fixed)
-#define MIDI_UART_NUM UART_NUM_2
+#define MIDI_UART_NUM UART_NUM_0
 #define MIDI_BAUD_RATE 31250
 #define MIDI_RX_GPIO GPIO_NUM_16
 #define MIDI_RX_BUFFER_SIZE 256
