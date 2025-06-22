@@ -10,7 +10,6 @@
 // MIDI UART and task parameters (fixed)
 #define MIDI_UART_NUM UART_NUM_0
 #define MIDI_BAUD_RATE 31250
-#define MIDI_RX_GPIO GPIO_NUM_16
 #define MIDI_RX_BUFFER_SIZE 256
 #define MIDI_RX_TIMEOUT_MS 20
 #define MIDI_TASK_PRIORITY (configMAX_PRIORITIES - 5)
@@ -27,8 +26,8 @@ namespace midi_in
     // Configuration for the MIDI input component
     struct MidiInConfig
     {
+        gpio_num_t rx_gpio;                          // RX pin
         uart_port_t uart_num = MIDI_UART_NUM;        // UART port to use
-        gpio_num_t rx_gpio = MIDI_RX_GPIO;           // RX pin
         size_t rx_buffer_size = MIDI_RX_BUFFER_SIZE; // UART RX buffer
         TickType_t rx_timeout = pdMS_TO_TICKS(MIDI_RX_TIMEOUT_MS);
     };
@@ -43,10 +42,10 @@ namespace midi_in
         void init(MidiCallback cb);
 
     private:
-         void taskLoop();
+        void taskLoop();
 
-        MidiInConfig config; // UART and timing configuration
-        MidiCallback callback;  // User callback for each byte
+        MidiInConfig config;   // UART and timing configuration
+        MidiCallback callback; // User callback for each byte
         TaskHandle_t task_handle = nullptr;
     };
 
