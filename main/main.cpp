@@ -35,6 +35,10 @@ auto bpmCallback = [](const uint8_t bpm)
     ESP_LOGI(TAG, "BpmEvent value %u", bpm);
 };
 
+auto midiInCallback = [](const Packet4 midiPacket){
+    parser.feed(midiPacket.data());
+};
+
 extern "C" void app_main()
 {
     parser.setControllerCallback(controllerCallback);
@@ -42,4 +46,6 @@ extern "C" void app_main()
     parser.setTransportCallback(transportCallback);
     parser.setBpmCallback(bpmCallback);
     parser.setSongPositionCallback(positionCallback);
+    midiIn.init(midiInCallback);
+
 }

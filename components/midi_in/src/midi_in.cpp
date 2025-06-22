@@ -52,23 +52,21 @@ void MidiIn::init(MidiCallback cb)
 
 void MidiIn::taskLoop()
 {
-    // Buffer on stack to avoid per-iteration allocation
-    uint8_t buf[MIDI_RX_BUFFER_SIZE];
-    while (true)
-    {
+   Packet4 pkt;
+    for (;;) {
+        // read up to exactly 4 bytes straight into pkt
         int len = uart_read_bytes(
             config.uart_num,
-            buf,
-            config.rx_buffer_size,
-            config.rx_timeout);
-        if (len > 0 && callback)
-        {
-            for (int i = 0; i < len; ++i)
-            {
-                callback(buf[i]);
-            }
+            pkt.data(),          // <- pointer to your 4-byte storage
+            pkt.size(),          // <- always 4
+            config.rx_timeout
+        );
+        if (len == static_cast<int>(pkt.size()) && callback) {
+            // now you have a full 4-byte USB-MIDI packet in pkt
+            callback(pkt);
         }
-        // Yield to other tasks / avoid blocking
+        // if you get a partial read, you could buffer it until you have 4,
+        // or just spin again and let the next iteration top you up.
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 }

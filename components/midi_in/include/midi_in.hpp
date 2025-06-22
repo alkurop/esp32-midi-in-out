@@ -6,6 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <functional>
+#include <array>
 
 // MIDI UART and task parameters (fixed)
 #define MIDI_UART_NUM UART_NUM_0
@@ -18,14 +19,15 @@
 namespace midi
 {
 
-
     // Callback invoked for each received MIDI byte
-    using MidiCallback = std::function<void(uint8_t)>;
+    using Packet4 = std::array<uint8_t, 4>;
+
+    using MidiCallback = std::function<void(Packet4)>;
 
     // Configuration for the MIDI input component
     struct MidiInConfig
     {
-        gpio_num_t pin;                          // RX pin
+        gpio_num_t pin;                              // RX pin
         uart_port_t uart_num = MIDI_UART_NUM;        // UART port to use
         size_t rx_buffer_size = MIDI_RX_BUFFER_SIZE; // UART RX buffer
         TickType_t rx_timeout = pdMS_TO_TICKS(MIDI_RX_TIMEOUT_MS);
