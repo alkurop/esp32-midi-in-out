@@ -6,9 +6,11 @@
 
 static const char *TAG = "Main";
 
-using namespace midi_module;
+using namespace midi;
 
 MidiParser parser;
+MidiInConfig config = {.pin = GPIO_NUM_5};
+MidiIn midiIn(config);
 
 auto controllerCallback = [](const ControllerChange event)
 {
@@ -26,7 +28,7 @@ auto noteCallback = [](const NoteMessage event)
 
 auto transportCallback = [](const TransportEvent event)
 {
-    ESP_LOGI(TAG, "TransportEvent note %u", event.command);
+    ESP_LOGI(TAG, "TransportEvent note %u", static_cast<uint8_t>(event.command));
 };
 auto bpmCallback = [](const uint8_t bpm)
 {

@@ -15,10 +15,9 @@
 #define MIDI_TASK_PRIORITY (configMAX_PRIORITIES - 5)
 #define MIDI_TASK_STACK_SIZE 2048
 
-namespace midi_in
+namespace midi
 {
 
-    static const char *TAG = "midi_in";
 
     // Callback invoked for each received MIDI byte
     using MidiCallback = std::function<void(uint8_t)>;
@@ -26,7 +25,7 @@ namespace midi_in
     // Configuration for the MIDI input component
     struct MidiInConfig
     {
-        gpio_num_t rx_gpio;                          // RX pin
+        gpio_num_t pin;                          // RX pin
         uart_port_t uart_num = MIDI_UART_NUM;        // UART port to use
         size_t rx_buffer_size = MIDI_RX_BUFFER_SIZE; // UART RX buffer
         TickType_t rx_timeout = pdMS_TO_TICKS(MIDI_RX_TIMEOUT_MS);

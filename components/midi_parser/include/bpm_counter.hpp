@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace midi_module
+namespace midi
 {
     class BpmCounter
     {

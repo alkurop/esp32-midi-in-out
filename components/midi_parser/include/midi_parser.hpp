@@ -6,7 +6,7 @@
 #include <esp_log.h>
 #include "bpm_counter.hpp"
 
-namespace midi_module
+namespace midi
 {
     struct ControllerChange
     {

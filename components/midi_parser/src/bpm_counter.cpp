@@ -1,6 +1,7 @@
 #include "bpm_counter.hpp"
+static const char *TAG = "BPM_COUNTER";
 
-namespace midi_module
+namespace midi
 {
 
 BpmCounter::BpmCounter() = default;
