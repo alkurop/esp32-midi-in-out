@@ -6,8 +6,7 @@ file(GLOB_RECURSE SRCS
 idf_component_register(
     SRCS ${SRCS}
     INCLUDE_DIRS "include"
-    REQUIRES log esp_timer
+    REQUIRES log driver midi_protocol
 )
 
 
-target_compile_options(${COMPONENT_LIB} PRIVATE -O3 -ffast-math -funroll-loops -fstrict-aliasing)

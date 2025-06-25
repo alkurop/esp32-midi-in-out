@@ -1,13 +1,13 @@
-#include "midi_parser.hpp"
+#include "midi_in_parser.hpp"
 #include "esp_log.h"
 
 using namespace midi;
 
 static const char *TAG = "MIDI_PARSER";
 
-MidiParser::MidiParser() = default;
+MidiInParser::MidiInParser() = default;
 
-void MidiParser::feed(const uint8_t packet[4])
+void MidiInParser::feed(const uint8_t packet[4])
 {
     uint8_t status = packet[1];
     uint8_t type = status & 0xF0;
@@ -56,12 +56,12 @@ void MidiParser::feed(const uint8_t packet[4])
     }
 }
 
-void MidiParser::parseTimingClock(const uint8_t packet[4])
+void MidiInParser::parseTimingClock(const uint8_t packet[4])
 {
     bpmCounter.onClockTick(esp_timer_get_time());
 }
 
-void MidiParser::parseControllerChange(const uint8_t packet[4])
+void MidiInParser::parseControllerChange(const uint8_t packet[4])
 {
     uint8_t status = packet[1];
     uint8_t channel = status & 0x0F;
@@ -85,7 +85,7 @@ void MidiParser::parseControllerChange(const uint8_t packet[4])
         controllerCallback(msg);
     }
 }
-void MidiParser::parseSongPosition(const uint8_t packet[4])
+void MidiInParser::parseSongPosition(const uint8_t packet[4])
 {
     SongPosition msg;
     msg.position = static_cast<uint16_t>((packet[3] << 7) | packet[2]);
@@ -96,7 +96,7 @@ void MidiParser::parseSongPosition(const uint8_t packet[4])
     }
 }
 
-void MidiParser::parseNoteMessage(const uint8_t packet[4], bool on)
+void MidiInParser::parseNoteMessage(const uint8_t packet[4], bool on)
 {
     uint8_t status = packet[1];
     uint8_t channel = status & 0x0F;
@@ -113,7 +113,7 @@ void MidiParser::parseNoteMessage(const uint8_t packet[4], bool on)
     }
 }
 
-void MidiParser::parseTransportCommand(const uint8_t packet[4])
+void MidiInParser::parseTransportCommand(const uint8_t packet[4])
 {
     TransportCommand command;
 

@@ -1,5 +1,5 @@
 #include "midi_in.hpp"
-#include "midi_parser.hpp"
+#include "midi_in_parser.hpp"
 #include <functional>
 #include <cstdint>
 #include "esp_log.h"
@@ -8,7 +8,7 @@ static const char *TAG = "Main";
 
 using namespace midi;
 
-MidiParser parser;
+MidiInParser parser;
 MidiInConfig config = {.pin = GPIO_NUM_5};
 MidiIn midiIn(config);
 

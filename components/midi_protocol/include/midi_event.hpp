@@ -1,10 +1,5 @@
 #pragma once
-
 #include <cstdint>
-#include <functional>
-#include <esp_timer.h>
-#include <esp_log.h>
-#include "bpm_counter.hpp"
 
 namespace midi
 {
@@ -14,25 +9,7 @@ namespace midi
         uint8_t controller; // Controller number (e.g. 1 = mod wheel)
         uint8_t value;      // Value (0–127)
     };
-
-    using MidiControllerCallback = std::function<void(const ControllerChange &)>;
-
-    struct SongPosition
-    {
-        uint16_t position; // Position in MIDI beats (16th notes)
-    };
-    using MidiSongPositionCallback = std::function<void(const SongPosition &)>;
-
-    struct NoteMessage
-    {
-        uint8_t channel;  // MIDI channel (0–15)
-        bool on;          // true = Note On, false = Note Off
-        uint8_t note;     // MIDI note number (0–127)
-        uint8_t velocity; // Velocity or release velocity
-    };
-
-    using MidiNoteMessageCallback = std::function<void(const NoteMessage &)>;
-
+    
     enum class TransportCommand : uint8_t
     {
         Start = 0xFA,
@@ -46,35 +23,17 @@ namespace midi
         TransportCommand command;
     };
 
-    using MidiTransportCallback = std::function<void(const TransportEvent &)>;
-
-    class MidiParser
+    struct NoteMessage
     {
-    private:
-        MidiControllerCallback controllerCallback;
-        MidiSongPositionCallback songPositionCallback;
-        MidiNoteMessageCallback noteMessageCallback;
-        MidiTransportCallback transportCallback;
-        BpmCounter bpmCounter;
+        uint8_t channel;  // MIDI channel (0–15)
+        bool on;          // true = Note On, false = Note Off
+        uint8_t note;     // MIDI note number (0–127)
+        uint8_t velocity; // Velocity or release velocity
+    };
 
-        void parseControllerChange(const uint8_t packet[4]);
-        void parseSongPosition(const uint8_t packet[4]);
-        void parseNoteMessage(const uint8_t packet[4], bool on);
-        void parseTransportCommand(const uint8_t packet[4]);
-        void parseTimingClock(const uint8_t packet[4]); // new use of BpmCounter
-
-    public:
-        MidiParser();
-
-        // Feed a 4-byte USB MIDI packet (USB MIDI format)
-        void feed(const uint8_t packet[4]);
-
-        // Register callback for MIDI CC messages
-        void setControllerCallback(MidiControllerCallback cb) { this->controllerCallback = cb; };
-        void setSongPositionCallback(MidiSongPositionCallback cb) { this->songPositionCallback = cb; };
-        void setNoteMessageCallback(MidiNoteMessageCallback cb) { this->noteMessageCallback = cb; };
-        void setTransportCallback(MidiTransportCallback cb) { this->transportCallback = cb; };
-        void setBpmCallback(BpmCounter::BpmCallback callback) { this->bpmCounter.setCallback(callback); };
+    struct SongPosition
+    {
+        uint16_t position; // Position in MIDI beats (16th notes)
     };
 
     enum class MidiMessageType : uint8_t
@@ -100,18 +59,8 @@ namespace midi
         Stop = 0xFC,
         ActiveSensing = 0xFE,
         SystemReset = 0xFF,
-
         Unknown = 0x00
     };
-
-    inline MidiMessageType getMidiMessageType(uint8_t statusByte)
-    {
-        if (statusByte >= 0xF0)
-        {
-            return static_cast<MidiMessageType>(statusByte);
-        }
-        return static_cast<MidiMessageType>(statusByte & 0xF0);
-    }
 
     inline const char *to_string(MidiMessageType type)
     {
