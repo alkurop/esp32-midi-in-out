@@ -5,7 +5,7 @@
 #include <esp_timer.h>
 #include <esp_log.h>
 #include "bpm_counter.hpp"
-#include "midi_event.hpp"
+#include "midi_protocol.hpp"
 
 namespace midi
 {
