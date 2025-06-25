@@ -32,8 +32,8 @@ void MidiIn::init(MidiCallback cb)
     ESP_ERROR_CHECK(uart_driver_install(config.uart_num,
                                         config.rx_buffer_size * 2,
                                         0,
-                                        0,
-                                        nullptr,
+                                        10, // queue size
+                                        &uart_queue,
                                         0));
 
     // 4) Launch MIDI reader task
@@ -52,21 +52,32 @@ void MidiIn::init(MidiCallback cb)
 
 void MidiIn::taskLoop()
 {
-   Packet4 pkt;
-    for (;;) {
-        // read up to exactly 4 bytes straight into pkt
-        int len = uart_read_bytes(
-            config.uart_num,
-            pkt.data(),          // <- pointer to your 4-byte storage
-            pkt.size(),          // <- always 4
-            config.rx_timeout
-        );
-        if (len == static_cast<int>(pkt.size()) && callback) {
-            // now you have a full 4-byte USB-MIDI packet in pkt
-            callback(pkt);
+    uart_event_t event;
+    Packet4 pkt;
+    int packet_index = 0;
+
+    while (true)
+    {
+        // Block until a UART event is received
+        if (xQueueReceive(uart_queue, &event, portMAX_DELAY))
+        {
+            if (event.type == UART_DATA)
+            {
+                uint8_t byte;
+                while (uart_read_bytes(config.uart_num, &byte, 1, 0) == 1)
+                {
+                    pkt[packet_index++] = byte;
+
+                    if (packet_index == pkt.size())
+                    {
+                        if (callback)
+                        {
+                            callback(pkt);
+                        }
+                        packet_index = 0;
+                    }
+                }
+            }
         }
-        // if you get a partial read, you could buffer it until you have 4,
-        // or just spin again and let the next iteration top you up.
-        vTaskDelay(pdMS_TO_TICKS(1));
     }
 }

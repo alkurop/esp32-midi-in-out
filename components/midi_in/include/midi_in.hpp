@@ -1,6 +1,5 @@
 #pragma once
 
-#include "driver/uart.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
@@ -48,6 +47,7 @@ namespace midi
         MidiInConfig config;   // UART and timing configuration
         MidiCallback callback; // User callback for each byte
         TaskHandle_t task_handle = nullptr;
+        QueueHandle_t uart_queue = nullptr;
     };
 
 } // namespace midi_in
