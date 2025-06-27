@@ -45,6 +45,7 @@ void MidiIn::init(MidiCallback cb)
         .rxfifo_full_thresh = 3, // Trigger interrupt on every byte
     };
     ESP_ERROR_CHECK(uart_intr_config(config.uart_num, &intr_conf));
+    // ESP_ERROR_CHECK(uart_set_line_inverse(config.uart_num, UART_SIGNAL_RXD_INV));
 
     // 4) Launch MIDI reader task
     xTaskCreate(
@@ -63,8 +64,7 @@ void MidiIn::init(MidiCallback cb)
 void MidiIn::taskLoop()
 {
     uart_event_t event;
-    Packet4 pkt;
-    int packet_index = 0;
+    uint8_t midi_packet[3];
 
     while (true)
     {
@@ -78,20 +78,26 @@ void MidiIn::taskLoop()
                 uint8_t byte;
                 Packet4 pkt = {0};    // pkt[0] = dummy CIN
                 int packet_index = 1; // start from pkt[1]
+                int midi_index = 0;
 
                 while (uart_read_bytes(config.uart_num, &byte, 1, 0) == 1)
                 {
-                    pkt[packet_index++] = byte;
+                    midi_packet[midi_index++] = byte;
 
-                    if (packet_index == 4) // pkt[1..3] filled
+                    if (midi_index == 3) // Standard MIDI message
                     {
+                        ESP_LOGI(TAG, "Receiving: %02X %02X %02X", midi_packet[0], midi_packet[1], midi_packet[2]);
+                        ESP_LOGI(TAG, "Receiving (bin): %s %s %s",
+                                 toBinary(midi_packet[0]).c_str(),
+                                 toBinary(midi_packet[1]).c_str(),
+                                 toBinary(midi_packet[2]).c_str());
+
+                        // Optional: wrap into a Packet4 with dummy CIN = 0
+                        Packet4 pkt = {0, midi_packet[0], midi_packet[1], midi_packet[2]};
                         if (callback)
-                        {
-                            ESP_LOGI(TAG, "Receiving: %02X %02X %02X", pkt[1], pkt[2], pkt[3]);
-                            ESP_LOGI(TAG, "Receiving: %s %s %s", toBinary(pkt[3]).c_str(), toBinary(pkt[2]).c_str(), toBinary(pkt[3]).c_str());
-                            callback(pkt); // USB-style 4-byte packet
-                        }
-                        packet_index = 1; // reset to pkt[1]
+                            callback(pkt);
+
+                        midi_index = 0;
                     }
                 }
             }

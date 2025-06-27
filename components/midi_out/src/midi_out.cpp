@@ -2,10 +2,8 @@
 #include "midi_out_parser.hpp"
 #include "esp_log.h"
 
-
 static const char *TAG = "MidiSends";
 using namespace midi;
-
 
 MidiOut::MidiOut(const MidiOutConfig &cfg) : config(cfg) {}
 
@@ -102,6 +100,7 @@ void MidiOut::sendBytes(const uint8_t *data, size_t length)
     MidiTxMessage msg;
     memcpy(msg.data, data, length);
     msg.length = length;
+  
 
     ESP_LOGI(TAG, "Sending: %02X %02X %02X", msg.data[0], msg.data[1], msg.data[2]);
     ESP_LOGI(TAG, "Sending: %s %s %s", toBinary(msg.data[0]).c_str(), toBinary(msg.data[1]).c_str(), toBinary(msg.data[2]).c_str());

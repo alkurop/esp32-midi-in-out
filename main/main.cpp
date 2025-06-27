@@ -42,9 +42,19 @@ auto midiInCallback = [](const Packet4 midiPacket)
 {
     parser.feed(midiPacket.data());
 };
-
+void setup_gpio_for_midi_out()
+{
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << GPIO_NUM_10),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE, // MIDI uses external pull-up
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE};
+    gpio_config(&io_conf);
+}
 extern "C" void app_main()
 {
+
     parser.setControllerCallback(controllerCallback);
     parser.setNoteMessageCallback(noteCallback);
     parser.setTransportCallback(transportCallback);
@@ -55,12 +65,13 @@ extern "C" void app_main()
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(1000));
         midiOut.setNote({
             .channel = 1,
-            .on = true,
-            .note = 3,
-            .velocity = 127,
+            .on = false,
+            .note = 1,
+            .velocity = 1,
         });
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
