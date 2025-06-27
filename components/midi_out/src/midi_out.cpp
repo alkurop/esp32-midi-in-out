@@ -1,10 +1,11 @@
 #include "midi_out.hpp"
 #include "midi_out_parser.hpp"
 #include "esp_log.h"
-#include <string.h>
+
 
 static const char *TAG = "MidiSends";
 using namespace midi;
+
 
 MidiOut::MidiOut(const MidiOutConfig &cfg) : config(cfg) {}
 
@@ -52,7 +53,6 @@ void MidiOut::sendControllerChange(ControllerChange event)
 {
     uint8_t packet[4];
     to_usb_packet(event, packet);
-
     sendBytes(&packet[1], 3);
 }
 
@@ -91,9 +91,8 @@ void MidiOut::txLoop()
             else
             {
                 ESP_LOGI(TAG, "MIDI send len=%u, wrote=%d", (unsigned int)msg.length, res);
-                uart_wait_tx_done(config.uart_num, pdMS_TO_TICKS(10)); // ✅ Wait until TX is fully flushed
+                uart_wait_tx_done(config.uart_num, pdMS_TO_TICKS(10));
             }
-
         }
     }
 }
@@ -103,8 +102,9 @@ void MidiOut::sendBytes(const uint8_t *data, size_t length)
     MidiTxMessage msg;
     memcpy(msg.data, data, length);
     msg.length = length;
-    ESP_LOGI(TAG, "Sending: %02X %02X %02X %02X len %d",msg.data[0],  msg.data[1], msg.data[2], msg.data[3],length);
 
+    ESP_LOGI(TAG, "Sending: %02X %02X %02X", msg.data[0], msg.data[1], msg.data[2]);
+    ESP_LOGI(TAG, "Sending: %s %s %s", toBinary(msg.data[0]).c_str(), toBinary(msg.data[1]).c_str(), toBinary(msg.data[2]).c_str());
     if (xQueueSend(tx_queue, &msg, 0) != pdTRUE)
     {
         ESP_LOGW(TAG, "MIDI TX queue full — message dropped");

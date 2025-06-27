@@ -37,4 +37,5 @@ namespace midi
         out[3] = static_cast<uint8_t>((msg.position >> 7) & 0x7F);
     }
 
+
 }

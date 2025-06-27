@@ -1,4 +1,5 @@
 #include "midi_in.hpp"
+#include "midi_protocol.hpp"
 #include "esp_log.h"
 #include <soc/uart_reg.h>
 
@@ -39,7 +40,7 @@ void MidiIn::init(MidiCallback cb)
                                         0));
     uart_intr_config_t intr_conf = {
         .intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M | UART_RXFIFO_TOUT_INT_ENA_M,
-        .rx_timeout_thresh = 2,  // ~2 character durations (for idle detection)
+        .rx_timeout_thresh = 2, // ~2 character durations (for idle detection)
         .txfifo_empty_intr_thresh = 10,
         .rxfifo_full_thresh = 3, // Trigger interrupt on every byte
     };
@@ -87,7 +88,7 @@ void MidiIn::taskLoop()
                         if (callback)
                         {
                             ESP_LOGI(TAG, "Receiving: %02X %02X %02X", pkt[1], pkt[2], pkt[3]);
-
+                            ESP_LOGI(TAG, "Receiving: %s %s %s", toBinary(pkt[3]).c_str(), toBinary(pkt[2]).c_str(), toBinary(pkt[3]).c_str());
                             callback(pkt); // USB-style 4-byte packet
                         }
                         packet_index = 1; // reset to pkt[1]

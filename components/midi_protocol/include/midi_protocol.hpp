@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <string.h>
+#include <string>
 
 namespace midi
 {
@@ -107,5 +109,15 @@ namespace midi
         default:
             return "Unknown";
         }
+    }
+
+
+    inline std::string toBinary(uint8_t byte)
+    {
+        char buf[9];
+        for (int i = 7; i >= 0; --i)
+            buf[7 - i] = (byte & (1 << i)) ? '1' : '0';
+        buf[8] = '\0';
+        return std::string(buf);
     }
 }
