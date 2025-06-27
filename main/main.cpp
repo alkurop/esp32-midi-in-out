@@ -65,13 +65,19 @@ extern "C" void app_main()
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
         midiOut.setNote({
             .channel = 1,
-            .on = false,
-            .note = 1,
-            .velocity = 1,
+            .on = true,
+            .note = 44,
+            .velocity = 127,
         });
         vTaskDelay(pdMS_TO_TICKS(1000));
+           midiOut.setNote({
+            .channel = 1,
+            .on = false,
+            .note =45,
+            .velocity = 127,
+        });
     }
 }

@@ -45,7 +45,6 @@ void MidiIn::init(MidiCallback cb)
         .rxfifo_full_thresh = 3, // Trigger interrupt on every byte
     };
     ESP_ERROR_CHECK(uart_intr_config(config.uart_num, &intr_conf));
-    // ESP_ERROR_CHECK(uart_set_line_inverse(config.uart_num, UART_SIGNAL_RXD_INV));
 
     // 4) Launch MIDI reader task
     xTaskCreate(
@@ -55,7 +54,7 @@ void MidiIn::init(MidiCallback cb)
             self->taskLoop();
         },
         "midi_in_task",
-        MIDI_TASK_STACK_SIZE,
+        4098,
         this,
         MIDI_TASK_PRIORITY,
         &task_handle);
@@ -87,11 +86,6 @@ void MidiIn::taskLoop()
                     if (midi_index == 3) // Standard MIDI message
                     {
                         ESP_LOGI(TAG, "Receiving: %02X %02X %02X", midi_packet[0], midi_packet[1], midi_packet[2]);
-                        ESP_LOGI(TAG, "Receiving (bin): %s %s %s",
-                                 toBinary(midi_packet[0]).c_str(),
-                                 toBinary(midi_packet[1]).c_str(),
-                                 toBinary(midi_packet[2]).c_str());
-
                         // Optional: wrap into a Packet4 with dummy CIN = 0
                         Packet4 pkt = {0, midi_packet[0], midi_packet[1], midi_packet[2]};
                         if (callback)

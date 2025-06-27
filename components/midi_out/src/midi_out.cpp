@@ -34,7 +34,7 @@ void MidiOut::init()
             self->txLoop();
         },
         "midi_tx_task",
-        2048,
+        4098,
         this,
         5,
         &tx_task);
@@ -103,7 +103,7 @@ void MidiOut::sendBytes(const uint8_t *data, size_t length)
   
 
     ESP_LOGI(TAG, "Sending: %02X %02X %02X", msg.data[0], msg.data[1], msg.data[2]);
-    ESP_LOGI(TAG, "Sending: %s %s %s", toBinary(msg.data[0]).c_str(), toBinary(msg.data[1]).c_str(), toBinary(msg.data[2]).c_str());
+    // ESP_LOGI(TAG, "Sending: %s %s %s", toBinary(msg.data[0]).c_str(), toBinary(msg.data[1]).c_str(), toBinary(msg.data[2]).c_str());
     if (xQueueSend(tx_queue, &msg, 0) != pdTRUE)
     {
         ESP_LOGW(TAG, "MIDI TX queue full — message dropped");

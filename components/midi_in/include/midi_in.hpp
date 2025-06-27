@@ -12,7 +12,6 @@
 #define MIDI_RX_BUFFER_SIZE 256
 #define MIDI_RX_TIMEOUT_MS 20
 #define MIDI_TASK_PRIORITY (configMAX_PRIORITIES - 5)
-#define MIDI_TASK_STACK_SIZE 2048
 
 namespace midi
 {
