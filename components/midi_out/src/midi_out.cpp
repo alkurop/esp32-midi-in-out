@@ -22,8 +22,9 @@ void MidiOut::init()
 #pragma GCC diagnostic pop
 
     ESP_ERROR_CHECK(uart_param_config(config.uart_num, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(config.uart_num, config.tx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_driver_install(config.uart_num, 0, 256, 0, nullptr, 0));
+    ESP_ERROR_CHECK(uart_set_pin(config.uart_num, config.sendPin, config.receivePin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    ESP_ERROR_CHECK(uart_driver_install(config.uart_num, 256, 256, 0, nullptr, 0));
+    ESP_ERROR_CHECK(uart_flush(config.uart_num));
 
     tx_queue = xQueueCreate(32, sizeof(MidiTxMessage));
 
@@ -51,6 +52,7 @@ void MidiOut::sendControllerChange(ControllerChange event)
 {
     uint8_t packet[4];
     to_usb_packet(event, packet);
+
     sendBytes(&packet[1], 3);
 }
 
@@ -81,7 +83,17 @@ void MidiOut::txLoop()
     {
         if (xQueueReceive(tx_queue, &msg, portMAX_DELAY))
         {
-            uart_write_bytes(config.uart_num, msg.data, msg.length);
+            int res = uart_write_bytes(config.uart_num, msg.data, msg.length);
+            if (res < 0)
+            {
+                ESP_LOGE(TAG, "MIDI send failed: %s", esp_err_to_name(res));
+            }
+            else
+            {
+                ESP_LOGI(TAG, "MIDI send len=%u, wrote=%d", (unsigned int)msg.length, res);
+                uart_wait_tx_done(config.uart_num, pdMS_TO_TICKS(10)); // ✅ Wait until TX is fully flushed
+            }
+
         }
     }
 }
@@ -91,6 +103,8 @@ void MidiOut::sendBytes(const uint8_t *data, size_t length)
     MidiTxMessage msg;
     memcpy(msg.data, data, length);
     msg.length = length;
+    ESP_LOGI(TAG, "Sending: %02X %02X %02X", msg.data[1], msg.data[2], msg.data[3]);
+
     if (xQueueSend(tx_queue, &msg, 0) != pdTRUE)
     {
         ESP_LOGW(TAG, "MIDI TX queue full — message dropped");

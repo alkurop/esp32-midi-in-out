@@ -16,8 +16,9 @@ namespace midi
     };
     struct MidiOutConfig
     {
-        uart_port_t uart_num = UART_NUM_1;
-        gpio_num_t tx_pin = GPIO_NUM_17;
+        gpio_num_t sendPin;
+        gpio_num_t receivePin;
+        uart_port_t uart_num;
         int baud_rate = 31250;
     };
 
@@ -39,6 +40,7 @@ namespace midi
 
         MidiOutConfig config;
         QueueHandle_t tx_queue = nullptr;
+        QueueHandle_t uart_queue = nullptr;
         TaskHandle_t tx_task = nullptr;
     };
 
