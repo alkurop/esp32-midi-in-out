@@ -12,7 +12,7 @@ void MidiOut::init()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     uart_config_t uart_config = {
-        .baud_rate = config.baud_rate,
+        .baud_rate = MIDI_BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -36,7 +36,7 @@ void MidiOut::init()
         "midi_tx_task",
         4098,
         this,
-        5,
+        configMAX_PRIORITIES - 5,
         &tx_task);
 }
 

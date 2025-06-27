@@ -15,6 +15,8 @@ void MidiIn::init(MidiCallback cb)
 {
     callback = cb;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     // 1) Configure UART parameters (8N1, MIDI baud)
     uart_config_t uart_cfg = {
         .baud_rate = MIDI_BAUD_RATE,
@@ -22,6 +24,8 @@ void MidiIn::init(MidiCallback cb)
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE};
+#pragma GCC diagnostic pop
+
     ESP_ERROR_CHECK(uart_param_config(config.uart_num, &uart_cfg));
 
     // 2) Set UART pins (TX unused)
@@ -56,7 +60,7 @@ void MidiIn::init(MidiCallback cb)
         "midi_in_task",
         4098,
         this,
-        MIDI_TASK_PRIORITY,
+        configMAX_PRIORITIES - 5,
         &task_handle);
 }
 
@@ -67,7 +71,6 @@ void MidiIn::taskLoop()
 
     while (true)
     {
-        // Block until a UART event is received
         if (xQueueReceive(uart_queue, &event, portMAX_DELAY))
         {
             ESP_LOGI(TAG, "Event %d", static_cast<int>(event.type));
@@ -75,23 +78,40 @@ void MidiIn::taskLoop()
             if (event.type == UART_DATA)
             {
                 uint8_t byte;
-                Packet4 pkt = {0};    // pkt[0] = dummy CIN
-                int packet_index = 1; // start from pkt[1]
                 int midi_index = 0;
-
+                int expected_length = 0;
                 while (uart_read_bytes(config.uart_num, &byte, 1, 0) == 1)
                 {
-                    midi_packet[midi_index++] = byte;
+                    if (byte & 0x80) // Status byte
+                    {
+                        midi_index = 0;
+                        midi_packet[midi_index++] = byte;
 
-                    if (midi_index == 3) // Standard MIDI message
+                        // Determine expected message length
+                        auto type = getMessageType(byte);
+                        expected_length = getMidiMessageSize(type);
+                        if (expected_length <= 0)
+                        {
+                            ESP_LOGW(TAG, "Skipping unsupported/variable-length MIDI msg: 0x%02X", byte);
+                            midi_index = 0;
+                            expected_length = 0;
+                        }
+                    }
+                    else if (midi_index > 0 && midi_index < 3) // Data byte
+                    {
+                        midi_packet[midi_index++] = byte;
+                    }
+
+                    if (midi_index == expected_length)
                     {
                         ESP_LOGI(TAG, "Receiving: %02X %02X %02X", midi_packet[0], midi_packet[1], midi_packet[2]);
-                        // Optional: wrap into a Packet4 with dummy CIN = 0
+
                         Packet4 pkt = {0, midi_packet[0], midi_packet[1], midi_packet[2]};
                         if (callback)
                             callback(pkt);
 
                         midi_index = 0;
+                        expected_length = 0;
                     }
                 }
             }

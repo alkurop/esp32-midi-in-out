@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string.h>
 #include <string>
+#define MIDI_BAUD_RATE 31250
 
 namespace midi
 {
@@ -11,7 +12,7 @@ namespace midi
         uint8_t controller; // Controller number (e.g. 1 = mod wheel)
         uint8_t value;      // Value (0–127)
     };
-    
+
     enum class TransportCommand : uint8_t
     {
         Start = 0xFA,
@@ -111,7 +112,6 @@ namespace midi
         }
     }
 
-
     inline std::string toBinary(uint8_t byte)
     {
         char buf[9];
@@ -119,5 +119,66 @@ namespace midi
             buf[7 - i] = (byte & (1 << i)) ? '1' : '0';
         buf[8] = '\0';
         return std::string(buf);
+    }
+
+    inline int getMidiMessageSize(MidiMessageType type)
+    {
+        using T = MidiMessageType;
+        switch (type)
+        {
+        // 3-byte channel voice messages
+        case T::NoteOff:
+        case T::NoteOn:
+        case T::PolyAftertouch:
+        case T::ControlChange:
+        case T::PitchBend:
+            return 3;
+
+        // 2-byte channel voice messages
+        case T::ProgramChange:
+        case T::ChannelPressure:
+            return 2;
+
+        // System Common
+        case T::SongPosition:
+            return 3;
+        case T::TimeCodeQuarter:
+        case T::SongSelect:
+            return 2;
+        case T::TuneRequest:
+        case T::EndOfExclusive:
+            return 1;
+
+        // System Real-Time (always 1 byte)
+        case T::TimingClock:
+        case T::Start:
+        case T::Continue:
+        case T::Stop:
+        case T::ActiveSensing:
+        case T::SystemReset:
+            return 1;
+
+        // System Exclusive (variable length)
+        case T::SystemExclusive:
+            return -1;
+
+        case T::Unknown:
+        default:
+            return 1; // Safe fallback
+        }
+    }
+
+    inline MidiMessageType getMessageType(uint8_t statusByte)
+    {
+        using T = MidiMessageType;
+
+        if (statusByte >= 0xF8)
+            return static_cast<T>(statusByte); // Real-time messages (single-byte)
+        if (statusByte >= 0xF0 && statusByte <= 0xF7)
+            return static_cast<T>(statusByte); // System Common messages
+        if ((statusByte & 0x80) == 0)
+            return T::Unknown; // Not a status byte (data byte)
+
+        return static_cast<T>(statusByte & 0xF0); // Channel Voice messages (high nibble identifies type)
     }
 }

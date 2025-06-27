@@ -19,7 +19,6 @@ namespace midi
         gpio_num_t sendPin;
         gpio_num_t receivePin;
         uart_port_t uart_num;
-        int baud_rate = 31250;
     };
 
     class MidiOut

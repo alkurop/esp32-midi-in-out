@@ -8,10 +8,6 @@
 #include <array>
 
 // MIDI UART and task parameters (fixed)
-#define MIDI_BAUD_RATE 31250
-#define MIDI_RX_BUFFER_SIZE 256
-#define MIDI_RX_TIMEOUT_MS 20
-#define MIDI_TASK_PRIORITY (configMAX_PRIORITIES - 5)
 
 namespace midi
 {
@@ -26,8 +22,8 @@ namespace midi
     {
         gpio_num_t receivePin;                              // RX pin
         uart_port_t uart_num;        // UART port to use
-        size_t rx_buffer_size = MIDI_RX_BUFFER_SIZE; // UART RX buffer
-        TickType_t rx_timeout = pdMS_TO_TICKS(MIDI_RX_TIMEOUT_MS);
+        size_t rx_buffer_size = 256; // UART RX buffer
+        TickType_t rx_timeout = pdMS_TO_TICKS(20);
     };
 
     class MidiIn
