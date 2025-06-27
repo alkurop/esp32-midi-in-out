@@ -55,7 +55,7 @@ extern "C" void app_main()
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2000));
         midiOut.setNote({
             .channel = 1,
             .on = true,

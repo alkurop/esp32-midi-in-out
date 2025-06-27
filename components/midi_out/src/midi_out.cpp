@@ -103,7 +103,7 @@ void MidiOut::sendBytes(const uint8_t *data, size_t length)
     MidiTxMessage msg;
     memcpy(msg.data, data, length);
     msg.length = length;
-    ESP_LOGI(TAG, "Sending: %02X %02X %02X", msg.data[1], msg.data[2], msg.data[3]);
+    ESP_LOGI(TAG, "Sending: %02X %02X %02X %02X len %d",msg.data[0],  msg.data[1], msg.data[2], msg.data[3],length);
 
     if (xQueueSend(tx_queue, &msg, 0) != pdTRUE)
     {

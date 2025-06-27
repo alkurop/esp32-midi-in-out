@@ -1,5 +1,6 @@
 #include "midi_in.hpp"
 #include "esp_log.h"
+#include <soc/uart_reg.h>
 
 using namespace midi;
 static const char *TAG = "MidiReceives";
@@ -36,6 +37,13 @@ void MidiIn::init(MidiCallback cb)
                                         10, // queue size
                                         &uart_queue,
                                         0));
+    uart_intr_config_t intr_conf = {
+        .intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M | UART_RXFIFO_TOUT_INT_ENA_M,
+        .rx_timeout_thresh = 2,  // ~2 character durations (for idle detection)
+        .txfifo_empty_intr_thresh = 10,
+        .rxfifo_full_thresh = 3, // Trigger interrupt on every byte
+    };
+    ESP_ERROR_CHECK(uart_intr_config(config.uart_num, &intr_conf));
 
     // 4) Launch MIDI reader task
     xTaskCreate(
